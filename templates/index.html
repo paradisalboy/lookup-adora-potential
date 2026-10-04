@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>جستجوی فروش</title>
+<style>
+  :root {
+    --bg: #f4f5f7;
+    --surface: #ffffff;
+    --border: #dde1e7;
+    --border-strong: #b8bec8;
+    --text: #1c2128;
+    --text-muted: #6b7280;
+    --text-subtle: #9ca3af;
+    --accent: oklch(52% 0.14 195);
+    --accent-soft: oklch(96% 0.04 195);
+    --accent-strong: oklch(40% 0.14 195);
+    --monthly-bg: oklch(97% 0.03 195);
+    --monthly-head: oklch(93% 0.05 195);
+    --grand-bg: oklch(95% 0.06 195);
+    --grand-head: oklch(89% 0.09 195);
+    --grand-text: oklch(38% 0.13 195);
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.06), 0 1px 4px rgba(0,0,0,.04);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Vazirmatn", "Segoe UI", Tahoma, sans-serif;
+    background: var(--bg); color: var(--text);
+    font-size: 13.5px; line-height: 1.65; min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 0 24px; height: 56px;
+    display: flex; align-items: center; gap: 12px;
+    position: sticky; top: 0; z-index: 30; box-shadow: var(--shadow-sm);
+  }
+  .logo {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: var(--accent); display: grid; place-items: center; flex-shrink: 0;
+  }
+  .logo svg { width: 16px; height: 16px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  header h1 { font-size: 15px; font-weight: 700; }
+  .header-end { margin-inline-start: auto; display: flex; align-items: center; gap: 8px; }
+  #reloadBtn {
+    background: none; border: 1px solid var(--border); color: var(--text-muted);
+    border-radius: var(--radius-sm); padding: 5px 12px; cursor: pointer;
+    font-family: inherit; font-size: 12px; transition: all .15s;
+    display: flex; align-items: center; gap: 5px;
+  }
+  #reloadBtn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+  #reloadBtn svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ── Main ── */
+  main { max-width: 1400px; margin: 0 auto; padding: 20px 16px 40px; }
+
+  /* ── Sheet Tabs ── */
+  .sheet-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+  .tab {
+    padding: 6px 18px; border: 1px solid var(--border); border-radius: 20px;
+    background: var(--surface); color: var(--text-muted);
+    cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600;
+    transition: all .15s;
+  }
+  .tab:hover { border-color: var(--accent); color: var(--accent); }
+  .tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* ── Filter Card ── */
+  .filter-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 20px;
+    box-shadow: var(--shadow-sm); margin-bottom: 16px;
+  }
+  .filter-title { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 14px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+  .field { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 200px; position: relative; }
+  label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+
+  /* ── Autocomplete Input ── */
+  .ac-wrap { position: relative; }
+  .ac-input {
+    width: 100%; padding: 8px 12px;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-family: inherit; font-size: 13.5px; color: var(--text);
+    background: var(--surface); transition: border-color .15s, box-shadow .15s;
+  }
+  .ac-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .ac-dropdown {
+    position: absolute; top: calc(100% + 4px); right: 0; left: 0; z-index: 20;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-md); box-shadow: 0 4px 16px rgba(0,0,0,.1);
+    max-height: 220px; overflow-y: auto; display: none;
+  }
+  .ac-dropdown.open { display: block; }
+  .ac-item {
+    padding: 8px 14px; cursor: pointer; font-size: 13px;
+    border-bottom: 1px solid var(--border); transition: background .1s;
+  }
+  .ac-item:last-child { border-bottom: none; }
+  .ac-item:hover, .ac-item.focused { background: var(--accent-soft); color: var(--accent-strong); }
+
+  /* ── Plain select (for sheet picker if needed) ── */
+  select {
+    padding: 8px 12px; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); font-family: inherit;
+    font-size: 13.5px; color: var(--text); background: var(--surface);
+    cursor: pointer; transition: border-color .15s;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: left 10px center; padding-left: 32px;
+  }
+  select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+  .btn-group { display: flex; gap: 8px; }
+  .btn {
+    padding: 8px 22px; border: none; border-radius: var(--radius-sm);
+    font-family: inherit; font-size: 13.5px; font-weight: 600;
+    cursor: pointer; transition: background .15s, transform .1s;
+    white-space: nowrap; height: 37px;
+  }
+  .btn:active:not(:disabled) { transform: scale(.97); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover:not(:disabled) { background: var(--accent-strong); }
+  .btn-ghost { background: var(--bg); border: 1px solid var(--border); color: var(--text-muted); }
+  .btn-ghost:hover:not(:disabled) { background: var(--border); color: var(--text); }
+
+  /* ── Status ── */
+  .status-bar {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; color: var(--text-muted); min-height: 28px; padding: 0 2px;
+  }
+  .status-bar.error { color: #be3030; }
+  .pill {
+    background: var(--accent-soft); color: var(--accent-strong);
+    border: 1px solid oklch(88% 0.07 195);
+    border-radius: 20px; padding: 1px 10px; font-weight: 600; font-size: 11.5px;
+  }
+  .spinner {
+    width: 14px; height: 14px; flex-shrink: 0;
+    border: 2px solid var(--border-strong); border-top-color: var(--accent);
+    border-radius: 50%; animation: spin .65s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Result ── */
+  .result-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow: hidden;
+  }
+  .table-wrap { overflow: auto; max-height: 62vh; }
+  table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+  thead th {
+    position: sticky; top: 0; z-index: 2; padding: 10px 14px;
+    background: #eef0f3; color: var(--text-muted); font-weight: 700;
+    text-align: center; white-space: nowrap; border-bottom: 2px solid var(--border); font-size: 12px;
+  }
+  thead th.monthly { background: var(--monthly-head); }
+  thead th.grand    { background: var(--grand-head); color: var(--grand-text); }
+  tbody td {
+    padding: 7px 14px; border-bottom: 1px solid var(--border);
+    text-align: center; white-space: nowrap; color: var(--text);
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:nth-child(even) { background: #fafbfc; }
+  tbody tr:hover td { background: var(--accent-soft); }
+  tbody td.monthly { background: var(--monthly-bg); }
+  tbody tr:hover td.monthly { background: var(--accent-soft); }
+  tbody td.grand { background: var(--grand-bg); font-weight: 700; color: var(--grand-text); }
+  tbody tr:hover td.grand { background: oklch(92% 0.09 195); }
+
+  .empty-state, .error-state {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 10px; padding: 56px 24px; color: var(--text-subtle);
+  }
+  .empty-state svg, .error-state svg {
+    width: 40px; height: 40px; opacity: .35;
+    fill: none; stroke: currentColor; stroke-width: 1.4;
+    stroke-linecap: round; stroke-linejoin: round;
+  }
+  .error-state { color: #be3030; }
+  .empty-state p, .error-state p { font-size: 13.5px; text-align: center; }
+
+  @media (max-width: 600px) {
+    header { padding: 0 12px; }
+    main { padding: 12px 8px 32px; }
+    .filter-card { padding: 14px; }
+    .field { min-width: 100%; }
+    .btn-group { width: 100%; }
+    .btn { flex: 1; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+  </div>
+  <h1>جستجوی فروش</h1>
+  <div class="header-end">
+    <button id="reloadBtn" title="بارگذاری مجدد فایل اکسل">
+      <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      بارگذاری مجدد
+    </button>
+  </div>
+</header>
+
+<main>
+  <!-- Sheet Tabs -->
+  <div class="sheet-tabs" id="sheetTabs"></div>
+
+  <!-- Filters -->
+  <div class="filter-card">
+    <div class="filter-title">فیلتر جستجو</div>
+    <div class="filters" id="filtersRow">
+      <!-- فیلدها توسط JS ساخته می‌شوند -->
+    </div>
+  </div>
+
+  <div class="status-bar" id="statusBar"></div>
+
+  <div class="result-card" id="resultCard">
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <p>فیلترها را وارد کرده و دکمه جستجو را بزنید.</p>
+    </div>
+  </div>
+</main>
+
+<script>
+/* ═══ تنظیمات شیت‌ها ═══ */
+const SHEET_FILTERS = {
+  "تعدادی": [
+    { param: "customer",     col: "نام مشتری",    label: "نام مشتری" },
+    { param: "seller",       col: "نام فروشنده",  label: "نام فروشنده" },
+    { param: "product",      col: "نام کالا",     label: "نام کالا" },
+    { param: "product_code", col: "کد کالا",      label: "کد کالا" },
+    { param: "supplier",     col: "تامین کننده",  label: "نام تامین کننده" },
+    { param: "franchise",    col: "فرنچایز",      label: "نام فرنچایز" },
+  ],
+  "تامین کننده": [
+    { param: "customer",  col: "نام مشتری",   label: "نام مشتری" },
+    { param: "seller",    col: "نام فروشنده", label: "نام فروشنده" },
+    { param: "supplier",  col: "تامین کننده", label: "نام تامین کننده" },
+  ],
+  "فرنچایز": [
+    { param: "customer",   col: "نام مشتری",   label: "نام مشتری" },
+    { param: "seller",     col: "نام فروشنده", label: "نام فروشنده" },
+    { param: "franchise",  col: "فرنچایز",     label: "نام فرنچایز" },
+  ],
+};
+
+const SHEETS = Object.keys(SHEET_FILTERS);
+let activeSheet = SHEETS[0];
+let acInstances = {};  // نگه‌داشتن state هر فیلد autocomplete
+
+/* ═══ ابزارها ═══ */
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+function setStatus(html, type = '') {
+  const el = $('statusBar');
+  el.className = 'status-bar' + (type ? ' ' + type : '');
+  el.innerHTML = html;
+}
+
+async function api(url) {
+  const r = await fetch(url);
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error || 'خطای سرور ' + r.status);
+  return j;
+}
+
+/* ═══ Autocomplete ═══ */
+function makeAC(param, col, label) {
+  const wrap = document.createElement('div');
+  wrap.className = 'field';
+
+  const lbl = document.createElement('label');
+  lbl.textContent = label;
+  lbl.htmlFor = 'ac_' + param;
+
+  const acWrap = document.createElement('div');
+  acWrap.className = 'ac-wrap';
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.id = 'ac_' + param;
+  input.className = 'ac-input';
+  input.placeholder = label + '…';
+  input.autocomplete = 'off';
+
+  const dropdown = document.createElement('div');
+  dropdown.className = 'ac-dropdown';
+  dropdown.id = 'dd_' + param;
+
+  acWrap.appendChild(input);
+  acWrap.appendChild(dropdown);
+  wrap.appendChild(lbl);
+  wrap.appendChild(acWrap);
+
+  let debounceTimer = null;
+  let focusedIdx = -1;
+  let currentItems = [];
+
+  function openDropdown(items) {
+    currentItems = items;
+    focusedIdx = -1;
+    dropdown.innerHTML = items.map((it, i) =>
+      `<div class="ac-item" data-idx="${i}">${esc(it)}</div>`
+    ).join('');
+    dropdown.classList.toggle('open', items.length > 0);
+    dropdown.querySelectorAll('.ac-item').forEach(el => {
+      el.addEventListener('mousedown', e => {
+        e.preventDefault();
+        input.value = currentItems[+el.dataset.idx];
+        dropdown.classList.remove('open');
+      });
+    });
+  }
+
+  function closeDropdown() {
+    dropdown.classList.remove('open');
+    focusedIdx = -1;
+  }
+
+  input.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(async () => {
+      const q = input.value.trim();
+      try {
+        const d = await api(`/api/suggest?sheet=${encodeURIComponent(activeSheet)}&col=${encodeURIComponent(col)}&q=${encodeURIComponent(q)}`);
+        openDropdown(d.items);
+      } catch { closeDropdown(); }
+    }, 200);
+  });
+
+  input.addEventListener('focus', async () => {
+    if (!input.value.trim()) {
+      try {
+        const d = await api(`/api/suggest?sheet=${encodeURIComponent(activeSheet)}&col=${encodeURIComponent(col)}&q=`);
+        openDropdown(d.items);
+      } catch { closeDropdown(); }
+    }
+  });
+
+  input.addEventListener('blur', () => setTimeout(closeDropdown, 150));
+
+  input.addEventListener('keydown', e => {
+    const items = dropdown.querySelectorAll('.ac-item');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      focusedIdx = Math.min(focusedIdx + 1, items.length - 1);
+      items.forEach((el, i) => el.classList.toggle('focused', i === focusedIdx));
+      if (items[focusedIdx]) items[focusedIdx].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      focusedIdx = Math.max(focusedIdx - 1, 0);
+      items.forEach((el, i) => el.classList.toggle('focused', i === focusedIdx));
+      if (items[focusedIdx]) items[focusedIdx].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+      if (focusedIdx >= 0 && items[focusedIdx]) {
+        input.value = currentItems[focusedIdx];
+        closeDropdown();
+      }
+    } else if (e.key === 'Escape') {
+      closeDropdown();
+    }
+  });
+
+  acInstances[param] = { input, getValue: () => input.value.trim(), clear: () => { input.value = ''; closeDropdown(); } };
+  return wrap;
+}
+
+/* ═══ ساخت فیلترها بر اساس شیت ═══ */
+function buildFilters(sheet) {
+  const row = $('filtersRow');
+  row.innerHTML = '';
+  acInstances = {};
+
+  const filters = SHEET_FILTERS[sheet] || [];
+  filters.forEach(f => {
+    row.appendChild(makeAC(f.param, f.col, f.label));
+  });
+
+  // دکمه‌ها
+  const btnGroup = document.createElement('div');
+  btnGroup.className = 'btn-group';
+  btnGroup.innerHTML = `
+    <button class="btn btn-primary" id="searchBtn">جستجو</button>
+    <button class="btn btn-ghost" id="resetBtn">پاک کردن</button>
+  `;
+  row.appendChild(btnGroup);
+
+  $('searchBtn').addEventListener('click', search);
+  $('resetBtn').addEventListener('click', reset);
+}
+
+/* ═══ Tab ها ═══ */
+function buildTabs() {
+  const tabsEl = $('sheetTabs');
+  tabsEl.innerHTML = '';
+  SHEETS.forEach(sh => {
+    const btn = document.createElement('button');
+    btn.className = 'tab' + (sh === activeSheet ? ' active' : '');
+    btn.textContent = sh;
+    btn.addEventListener('click', () => {
+      activeSheet = sh;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      buildFilters(sh);
+      reset();
+    });
+    tabsEl.appendChild(btn);
+  });
+}
+
+/* ═══ جستجو ═══ */
+async function search() {
+  setStatus('<span class="spinner"></span> جستجو…');
+  $('resultCard').innerHTML = '';
+  const searchBtn = $('searchBtn');
+  if (searchBtn) searchBtn.disabled = true;
+
+  try {
+    const p = new URLSearchParams({ sheet: activeSheet });
+    const filters = SHEET_FILTERS[activeSheet] || [];
+    filters.forEach(f => {
+      const val = acInstances[f.param]?.getValue() || '';
+      if (val) p.set(f.param, val);
+    });
+
+    const d = await api('/api/data?' + p);
+    renderTable(d);
+    setStatus(d.count
+      ? `<span class="pill">${d.count}</span> ردیف یافت شد.`
+      : 'نتیجه‌ای پیدا نشد.');
+  } catch(e) {
+    $('resultCard').innerHTML = `<div class="error-state"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><p>خطا: ${esc(e.message)}</p></div>`;
+    setStatus('', 'error');
+  } finally {
+    if (searchBtn) searchBtn.disabled = false;
+  }
+}
+
+function reset() {
+  Object.values(acInstances).forEach(ac => ac.clear());
+  $('resultCard').innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><p>فیلترها را وارد کرده و دکمه جستجو را بزنید.</p></div>`;
+  setStatus('');
+}
+
+/* ═══ رندر جدول ═══ */
+function renderTable(d) {
+  if (!d.count) {
+    $('resultCard').innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><p>هیچ داده‌ای مطابق فیلترها یافت نشد.</p></div>`;
+    return;
+  }
+  const monthly = new Set(d.monthly_columns), grand = new Set(d.grand_total_columns);
+  const cls = c => monthly.has(c) ? 'monthly' : grand.has(c) ? 'grand' : '';
+  const fmt = v => (v === '' || v == null)
+    ? '<span style="color:var(--text-subtle)">—</span>'
+    : typeof v === 'number' ? v.toLocaleString('fa-IR') : esc(v);
+
+  let h = '<div class="table-wrap"><table><thead><tr>';
+  for (const c of d.columns) {
+    const k = cls(c);
+    h += `<th${k ? ` class="${k}"` : ''}>${esc(c)}</th>`;
+  }
+  h += '</tr></thead><tbody>';
+  for (const row of d.rows) {
+    h += '<tr>';
+    for (const c of d.columns) {
+      const k = cls(c);
+      h += `<td${k ? ` class="${k}"` : ''}>${fmt(row[c])}</td>`;
+    }
+    h += '</tr>';
+  }
+  h += '</tbody></table></div>';
+  $('resultCard').innerHTML = h;
+}
+
+/* ═══ Reload ═══ */
+$('reloadBtn').onclick = async () => {
+  $('reloadBtn').disabled = true;
+  setStatus('<span class="spinner"></span> بارگذاری مجدد…');
+  try {
+    const r = await fetch('/api/reload', { method: 'POST' });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error);
+    setStatus('فایل با موفقیت بارگذاری شد.');
+  } catch(e) {
+    setStatus('خطا در بارگذاری مجدد: ' + esc(e.message), 'error');
+  } finally {
+    $('reloadBtn').disabled = false;
+  }
+};
+
+/* ═══ Init ═══ */
+buildTabs();
+buildFilters(activeSheet);
+</script>
+</body>
+</html>
